@@ -1,12 +1,15 @@
 #include "kernel.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
+#include "memory/paging/paging.h"
 #include <stddef.h>
 #include <stdint.h>
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
 uint16_t terminal_col = 0;
+
+static struct paging_4gb_chunk* kernel_chunk = 0;
 
 uint16_t terminal_make_char(char c, char colour) {
   return (colour << 8) | c;
@@ -71,4 +74,11 @@ void kernel_main() {
 
   kheap_init();
   idt_init();
+
+  // Paging setup
+  kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+  // Switch for the processor to follow the kernel paging directory
+  paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+  // Enable paging
+  enable_paging();
 }

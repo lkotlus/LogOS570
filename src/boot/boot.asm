@@ -80,11 +80,11 @@ load32:
     mov ss, ax
     mov ebp, 0x00200000
     mov esp, ebp
-	
-	; Enabling the A20 line
-	in al, 0x92
-	or al, 2
-	out 0x92, al
+    
+    ; Enabling the A20 line
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
     mov eax, 1                 ; LDA (1 is the address of sector 2)
     mov ecx, 100               ; Read 100 sectors
@@ -95,57 +95,57 @@ load32:
     jmp $ ; infinite loop
 
 ata_lba_read:
-	mov ebx, eax ; backup the LBA
-	
-	; send the highest 8 bits of the LBA to the HDD controller
-	shr eax, 24
-	or eax, 0xe0
-	mov dx, 0x1f6
-	out dx, al
-	
-	; Send the total sectors to read
-	mov eax, ecx
-	mov dx, 0x1f2
-	out dx, al
-	
-	; Send more bits of the LBA
-	mov eax, ebx ; restore the LBA backup
-	mov dx, 0x1F3
-	out dx, al
-	
-	; Send more bits of the LBA
-	mov dx, 0x1f4
-	mov eax, ebx ; restore the LBA backup
-	shr eax, 8
-	out dx, al
-	shr eax, 8
-	
-	; Send upper 16 bits of the LBA
-	mov dx, 0x1f5
-	mov eax, ebx ; restore the LBA backup
-	shr eax, 16
-	out dx, al
-	
-	mov dx, 0x1f7
-	mov al, 0x20
-	out dx, al
-	
-	.next_sector:
-		push ecx
-		
-		.try_again:
-			mov dx, 0x1f7
-			in al, dx
-			test al, 8
-			jz .try_again
-	
-		mov ecx, 256
-		mov dx, 0x1f0
-		rep insw
-		pop ecx
-		loop .next_sector
-		
-	ret
+    mov ebx, eax ; backup the LBA
+    
+    ; send the highest 8 bits of the LBA to the HDD controller
+    shr eax, 24
+    or eax, 0xe0
+    mov dx, 0x1f6
+    out dx, al
+    
+    ; Send the total sectors to read
+    mov eax, ecx
+    mov dx, 0x1f2
+    out dx, al
+    
+    ; Send more bits of the LBA
+    mov eax, ebx ; restore the LBA backup
+    mov dx, 0x1F3
+    out dx, al
+    
+    ; Send more bits of the LBA
+    mov dx, 0x1f4
+    mov eax, ebx ; restore the LBA backup
+    shr eax, 8
+    out dx, al
+    shr eax, 8
+    
+    ; Send upper 16 bits of the LBA
+    mov dx, 0x1f5
+    mov eax, ebx ; restore the LBA backup
+    shr eax, 16
+    out dx, al
+    
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+    
+    .next_sector:
+        push ecx
+        
+        .try_again:
+            mov dx, 0x1f7
+            in al, dx
+            test al, 8
+            jz .try_again
+    
+        mov ecx, 256
+        mov dx, 0x1f0
+        rep insw
+        pop ecx
+        loop .next_sector
+        
+    ret
 
 ; padding and signature
 times 510-($ - $$) db 0

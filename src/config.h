@@ -1,0 +1,9 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define KERNEL_CODE_SELECTOR 0x08
+#define KERNELD_ATA_SELECTOR 0x10
+
+#define LOGOS_TOTAL_INTERRUPTS 512
+
+#endif

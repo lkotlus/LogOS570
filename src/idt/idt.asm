@@ -1,12 +1,33 @@
 section .asm progbits alloc exec nowrite align=16
 
+extern int21h_handler
+extern no_interrupt_handler
+
+global int21h
 global idt_load
+global no_interrupt
+
 idt_load:
-    ; Set up our stack frame
-    push ebp
-    mov ebp, esp
-    
-    mov ebp, [ebp+8] ; Load the first argument into the ebx register
-    lidt [ebx] ; Load the IDT into the CPU
-    pop ebp ; Clean up the stack frame
-    ret ; Return from the function
+	push ebp
+	mov ebp, esp
+	
+	mov ebx, [ebp+8]
+	lidt [ebx]
+	pop ebp
+	ret
+
+int21h:
+	cli
+	pushad
+	call int21h_handler
+	popad
+	sti
+	iret
+
+no_interrupt:
+	cli
+	pushad
+	call no_interrupt_handler
+	popad
+	sti
+	iret

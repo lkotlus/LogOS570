@@ -21,6 +21,21 @@ _start:
     or al, 2
     out 0x92, al
     
+    ; Send signal to master PIC
+    mov al, 00010001b
+    out 0x20, al
+
+    ; Set the start interrupt to 0x20
+    mov al, 0x20
+    out 0x21, al
+
+    ; Remap
+    mov al, 00000001b
+    out 0x21, al
+
+    ; Enable interrupts
+    sti
+
     call kernel_main
 
     jmp $

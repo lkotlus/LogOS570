@@ -1,4 +1,4 @@
-section .asm
+section .asm progbits alloc exec nowrite align=16
 
 global idt_load
 idt_load:

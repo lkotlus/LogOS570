@@ -2,6 +2,7 @@
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "disk/disk.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -77,26 +78,9 @@ void kernel_main() {
 
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
   paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
-
-  // Create a 4096 byte block on the heap with reasonable settings
-  char* ptr = kzalloc(4096);
-  char flags = PAGING_ACCESS_FROM_ALL | PAGING_IS_PRESENT | PAGING_IS_WRITEABLE;
-
-  // Modify the page table for our block and set it to virtual address 0x1000
-  paging_set(
-      paging_4gb_chunk_get_directory(kernel_chunk),
-      (void*)0x1000,
-      (uint32_t)ptr | flags
-  );
-
-  // Enable paging (code uses virtual addresses after this)
   enable_paging();
 
-  // Testing our memory allocation
-  char* ptr2 = (char*)0x1000;
-  ptr2[0] = 'A';
-  ptr2[1] = 'B';
-  print(ptr2);
-  print("\n");
-  print(ptr);
+  // Load the first sector on disk into a buffer
+  char buf[512];
+  disk_read_sector(0, 1, buf);
 }

@@ -3,6 +3,7 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
+#include "disk/streamer.h"
 #include "string/string.h"
 #include "fs/pparser.h"
 #include "string/string.h"
@@ -63,14 +64,20 @@ void print(const char* str) {
 void kernel_main() {
   enable_interrupts();
 
-  struct path_root* root_path = pathparser_parse("o:/bin/shell.exe", NULL);
-  if (root_path) print("Root path found!\n");
-
   terminal_initialize();
   print("Hello world!\nTesting...\n");
 
   kheap_init();
   idt_init();
+
+  // Disk streamer that reads from disk 0
+  struct disk_stream* stream = diskstreamer_new(0);
+  // Seek just past the bootloader (513 LBA, 0x200 would've done fine)
+  diskstreamer_seek(stream, 0x200);
+  unsigned char c = 0;
+  // Read a single byte and loop forever (so we can debug)
+  diskstreamer_read(stream, &c, 1);
+  while(1) {}
 
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
   paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));

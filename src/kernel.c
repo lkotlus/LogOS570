@@ -4,6 +4,8 @@
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
 #include "string/string.h"
+#include "fs/pparser.h"
+#include "string/string.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -60,6 +62,9 @@ void print(const char* str) {
 
 void kernel_main() {
   enable_interrupts();
+
+  struct path_root* root_path = pathparser_parse("o:/bin/shell.exe", NULL);
+  if (root_path) print("Root path found!\n");
 
   terminal_initialize();
   print("Hello world!\nTesting...\n");

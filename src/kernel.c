@@ -80,7 +80,5 @@ void kernel_main() {
   paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
   enable_paging();
 
-  // Load the first sector on disk into a buffer
-  char buf[512];
-  disk_read_sector(0, 1, buf);
+  disk_search_and_init();
 }

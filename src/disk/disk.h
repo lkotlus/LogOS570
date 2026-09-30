@@ -1,12 +1,15 @@
 #ifndef DISK_H
 #define DISK_H
 
+#include "fs/file.h"
+
 typedef unsigned int LOGOS_DISK_TYPE;
 #define LOGOS_DISK_TYPE_REAL 0
 
 struct disk {
   LOGOS_DISK_TYPE type;
   int sector_size;
+  struct filesystem* filesystem;
 };
 
 void disk_search_and_init();

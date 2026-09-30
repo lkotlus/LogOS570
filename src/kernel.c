@@ -6,6 +6,7 @@
 #include "disk/streamer.h"
 #include "string/string.h"
 #include "fs/pparser.h"
+#include "fs/file.h"
 #include "string/string.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -70,6 +71,8 @@ void kernel_main() {
   kheap_init();
   idt_init();
 
+  fs_init();
+
   // Disk streamer that reads from disk 0
   struct disk_stream* stream = diskstreamer_new(0);
   // Seek just past the bootloader (513 LBA, 0x200 would've done fine)
@@ -77,7 +80,6 @@ void kernel_main() {
   unsigned char c = 0;
   // Read a single byte and loop forever (so we can debug)
   diskstreamer_read(stream, &c, 1);
-  while(1) {}
 
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
   paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));

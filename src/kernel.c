@@ -62,28 +62,36 @@ void print(const char* str) {
 }
 
 void kernel_main() {
-  enable_interrupts();
-
+  // Terminal
   terminal_initialize();
   print("Hello world!\nTesting...\n");
 
+  // Init things :)
   kheap_init();
+  fs_init();
+  disk_search_and_init();
   idt_init();
 
-  fs_init();
-
-  // Disk streamer that reads from disk 0
-  struct disk_stream* stream = diskstreamer_new(0);
-  // Seek just past the bootloader (513 LBA, 0x200 would've done fine)
-  diskstreamer_seek(stream, 0x200);
-  unsigned char c = 0;
-  // Read a single byte and loop forever (so we can debug)
-  diskstreamer_read(stream, &c, 1);
-
+  // Paging setup
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT |
                                 PAGING_ACCESS_FROM_ALL);
   paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
-  enable_paging();
 
-  disk_search_and_init();
+  // Enable things
+  enable_paging();
+  enable_interrupts();
+
+  // File testing
+  int fd = fopen("0:/hello.txt", "r");
+  if (fd) {
+    print("We opened hello.txt\n");
+
+    char buf[37];
+    fread(buf, 36, 1, fd);
+    buf[36] = 0x00;
+
+    print(buf);
+  }
+  while (1) {
+  }
 }

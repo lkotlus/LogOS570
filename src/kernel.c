@@ -86,6 +86,9 @@ void kernel_main() {
   if (fd) {
     print("We opened hello.txt\n");
 
+    struct file_stat s;
+    fstat(fd, &s);
+
     char buf[37];
     fseek(fd, 2, SEEK_SET);
     fread(buf, 34, 1, fd);

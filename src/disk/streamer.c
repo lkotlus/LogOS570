@@ -1,6 +1,7 @@
 #include "streamer.h"
-#include "memory/heap/kheap.h"
+
 #include "config.h"
+#include "memory/heap/kheap.h"
 
 struct disk_stream* diskstreamer_new(int disk_id) {
   struct disk* disk = disk_get(disk_id);
@@ -27,16 +28,15 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total) {
   if (res < 0) goto out;
 
   int total_to_read = total > LOGOS_SECTOR_SIZE ? LOGOS_SECTOR_SIZE : total;
-  for (int i = 0; i < total_to_read; i++) *(char*)out++ = buf[offset+i];
+  for (int i = 0; i < total_to_read; i++) *(char*)out++ = buf[offset + i];
 
   // Adjust the stream
   stream->pos += total_to_read;
-  if (total > LOGOS_SECTOR_SIZE) res = diskstreamer_read(stream, out, total-LOGOS_SECTOR_SIZE);
+  if (total > LOGOS_SECTOR_SIZE)
+    res = diskstreamer_read(stream, out, total - LOGOS_SECTOR_SIZE);
 
-  out:
-    return res;
+out:
+  return res;
 }
 
-void diskstreamer_close(struct disk_stream* stream) {
-  kfree(stream);
-}
+void diskstreamer_close(struct disk_stream* stream) { kfree(stream); }

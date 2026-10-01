@@ -4,30 +4,24 @@
 #include "pparser.h"
 
 typedef unsigned int FILE_SEEK_MODE;
-enum {
-  SEEK_SET,
-  SEEK_CUR,
-  SEEK_END
-};
+enum { SEEK_SET, SEEK_CUR, SEEK_END };
 
 typedef unsigned int FILE_MODE;
-enum {
-  FILE_MODE_READ,
-  FILE_MODE_WRITE,
-  FILE_MODE_APPEND,
-  FILE_MODE_INVALID
-};
+enum { FILE_MODE_READ, FILE_MODE_WRITE, FILE_MODE_APPEND, FILE_MODE_INVALID };
 
 struct disk;
 
-// These are function pointers to be inherited by a particular filesystem driver.
-typedef void* (*FS_OPEN_FUNCTION)(struct disk* disk, struct path_part* path, FILE_MODE mode);
+// These are function pointers to be inherited by a particular filesystem
+// driver.
+typedef void* (*FS_OPEN_FUNCTION)(struct disk* disk, struct path_part* path,
+                                  FILE_MODE mode);
 typedef int (*FS_RESOLVE_FUNCTION)(struct disk* disk);
 struct filesystem {
-  // The filesystem should return zero from resolve if the provided disk is using its filesystem.
-  // When the VFS layer wants to determine a filesystem, it will loop through all available registered
-  // filesystems and run resolve. If it returns zero, then the filesystem driver is indicating that
-  // it understands how to read the given disk.
+  // The filesystem should return zero from resolve if the provided disk is
+  // using its filesystem. When the VFS layer wants to determine a filesystem,
+  // it will loop through all available registered filesystems and run resolve.
+  // If it returns zero, then the filesystem driver is indicating that it
+  // understands how to read the given disk.
   FS_RESOLVE_FUNCTION resolve;
   // This function pointer is called when we open a file in a given filesystem.
   FS_OPEN_FUNCTION open;

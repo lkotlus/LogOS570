@@ -1,20 +1,21 @@
 #include "pparser.h"
+
 #include "kernel.h"
-#include "string/string.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "status.h"
+#include "string/string.h"
 
 // This function checks if the provided path is in a valid format.
 static int pathparser_path_valid_format(const char* filename) {
   int len = strnlen(filename, LOGOS_MAX_PATH);
-  return (len >= 3 && isdigit(filename[0]) && memcmp((void*)&
-  filename[1], ":/", 2) == 0);
+  return (len >= 3 && isdigit(filename[0]) &&
+          memcmp((void*)&filename[1], ":/", 2) == 0);
 }
 
 // This function obtains the drive number from the path.
 static int pathparser_get_drive_by_path(const char** path) {
-  if(!pathparser_path_valid_format(*path)) return -EBADPATH;
+  if (!pathparser_path_valid_format(*path)) return -EBADPATH;
 
   int drive_no = tonumericdigit(*path[0]);
   // Add 3 bytes to skip drive number 0:/ 1:/ 2:/
@@ -37,13 +38,13 @@ static const char* pathparser_get_path_part(const char** path) {
   char* result_path_part = kzalloc(LOGOS_MAX_PATH);
   int i = 0;
 
-  while(**path != '/' && **path != 0x00) {
+  while (**path != '/' && **path != 0x00) {
     result_path_part[i++] = **path;
     *path += 1;
   }
 
   if (**path == '/') *path += 1;
-  if(i == 0) {
+  if (i == 0) {
     kfree(result_path_part);
     result_path_part = 0;
   }
@@ -52,8 +53,9 @@ static const char* pathparser_get_path_part(const char** path) {
 }
 
 // This function parses each part of the path.
-struct path_part* pathparser_parse_path_part(struct path_part* last_part, const char** path) {
-const char* path_part_str = pathparser_get_path_part(path);
+struct path_part* pathparser_parse_path_part(struct path_part* last_part,
+                                             const char** path) {
+  const char* path_part_str = pathparser_get_path_part(path);
   if (!path_part_str) return 0;
 
   struct path_part* part = kzalloc(sizeof(struct path_part));
@@ -68,9 +70,9 @@ const char* path_part_str = pathparser_get_path_part(path);
 // This function frees up the memory allocated for path parsing.
 void pathparser_free(struct path_root* root) {
   struct path_part* part = root->first;
-  while(part) {
+  while (part) {
     struct path_part* next_part = part->next;
-    kfree((void*) part->part);
+    kfree((void*)part->part);
     kfree(part);
 
     part = next_part;
@@ -79,8 +81,10 @@ void pathparser_free(struct path_root* root) {
   kfree(root);
 }
 
-// This is the main function for path parsing. It uses all the above functions to parse the provided path.
-struct path_root* pathparser_parse(const char* path, const char* current_directory_path) {
+// This is the main function for path parsing. It uses all the above functions
+// to parse the provided path.
+struct path_root* pathparser_parse(const char* path,
+                                   const char* current_directory_path) {
   int res = 0;
   const char* tmp_path = path;
   struct path_root* path_root = 0;
@@ -99,8 +103,8 @@ struct path_root* pathparser_parse(const char* path, const char* current_directo
   path_root->first = first_part;
   struct path_part* part = pathparser_parse_path_part(first_part, &tmp_path);
 
-  while(part) part = pathparser_parse_path_part(part, &tmp_path);
+  while (part) part = pathparser_parse_path_part(part, &tmp_path);
 
-  out:
-    return path_root;
+out:
+  return path_root;
 }

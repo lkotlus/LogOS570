@@ -1,17 +1,19 @@
 #include "file.h"
+
 #include "config.h"
-#include "memory/memory.h"
-#include "memory/heap/kheap.h"
-#include "status.h"
-#include "kernel.h"
 #include "fat/fat16.h"
+#include "kernel.h"
+#include "memory/heap/kheap.h"
+#include "memory/memory.h"
+#include "status.h"
 
 // We have a maximum total filesystems as specified in our config file.
 struct filesystem* filesystems[LOGOS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[LOGOS_MAX_FILE_DESCRIPTORS];
 
-// This function gets a free available filesystem slot from the filesystems array that can be used
-// by someone who wants to register a new filesystem in the VFS layer.
+// This function gets a free available filesystem slot from the filesystems
+// array that can be used by someone who wants to register a new filesystem in
+// the VFS layer.
 static struct filesystem** fs_get_free_filesystem() {
   int i = 0;
   for (i = 0; i < LOGOS_MAX_FILESYSTEMS; i++) {
@@ -34,14 +36,13 @@ void fs_insert_filesystem(struct filesystem* filesystem) {
   fs = fs_get_free_filesystem();
   if (!fs) {
     print("Problem inserting filesystem");
-    while(1) {}
+    while (1) {
+    }
   }
   *fs = filesystem;
 }
 
-static void fs_static_load() {
-  fs_insert_filesystem(fat16_init());
-}
+static void fs_static_load() { fs_insert_filesystem(fat16_init()); }
 
 // This function loads all the filesystem
 // implementations into memory
@@ -63,7 +64,7 @@ static int file_new_descriptor(struct file_descriptor** desc_out) {
   for (int i = 0; i < LOGOS_MAX_FILE_DESCRIPTORS; i++) {
     if (file_descriptors[i] == 0) {
       struct file_descriptor* desc = kzalloc(sizeof(struct file_descriptor));
-      
+
       // Descriptors start at 1
       desc->index = i + 1;
       file_descriptors[i] = desc;
@@ -86,7 +87,7 @@ static int file_new_descriptor(struct file_descriptor** desc_out) {
 // The descriptor describes the open file.
 static struct file_descriptor* file_get_descriptor(int fd) {
   if (fd <= 0 || fd >= LOGOS_MAX_FILE_DESCRIPTORS) return 0;
-  
+
   // Descriptors start at 1
   int index = fd - 1;
   return file_descriptors[index];
@@ -114,6 +115,4 @@ struct filesystem* fs_resolve(struct disk* disk) {
 // This is the start of our fopen
 // function, for now we return an IO error.
 // it will do nothing for the time being.
-int fopen(const char* filename, const char* mode) {
-  return -EIO;
-}
+int fopen(const char* filename, const char* mode) { return -EIO; }

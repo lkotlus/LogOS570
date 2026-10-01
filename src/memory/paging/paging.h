@@ -1,9 +1,9 @@
 #ifndef PAGING_H
 #define PAGING_H
 
-#include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #define PAGING_CACHE_DISABLED 0b00010000
 #define PAGING_WRITE_THROUGH 0b00001000

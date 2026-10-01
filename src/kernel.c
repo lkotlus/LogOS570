@@ -87,10 +87,12 @@ void kernel_main() {
     print("We opened hello.txt\n");
 
     char buf[37];
-    fread(buf, 36, 1, fd);
+    fseek(fd, 2, SEEK_SET);
+    fread(buf, 34, 1, fd);
     buf[36] = 0x00;
 
     print(buf);
+    print("\n");
   }
   while (1) {
   }

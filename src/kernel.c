@@ -96,6 +96,9 @@ void kernel_main() {
 
     print(buf);
     print("\n");
+
+    fclose(fd);
+    print("File closed!\n");
   }
   while (1) {
   }

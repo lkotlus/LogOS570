@@ -126,6 +126,11 @@ FILE_MODE file_get_mode_by_string(const char* str) {
   return mode;
 }
 
+static void file_free_descriptor(struct file_descriptor* desc) {
+  file_descriptors[desc->index - 1] = 0x00;
+  kfree(desc);
+}
+
 int fopen(const char* filename, const char* mode_str) {
   int res = 0;
   struct path_root* root_path = pathparser_parse(filename, NULL);
@@ -211,6 +216,21 @@ int fstat(int fd, struct file_stat* stat) {
     goto out;
   }
   res = desc->filesystem->stat(desc->disk, desc->private, stat);
+out:
+  return res;
+}
+
+int fclose(int fd) {
+  int res = 0;
+  struct file_descriptor* desc = file_get_descriptor(fd);
+  if (!desc) {
+    res = -EIO;
+    goto out;
+  }
+  res = desc->filesystem->close(desc->private);
+  if (res == LOGOS_ALL_OK) {
+    file_free_descriptor(desc);
+  }
 out:
   return res;
 }

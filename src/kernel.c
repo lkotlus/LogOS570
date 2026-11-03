@@ -3,12 +3,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "config.h"
 #include "disk/disk.h"
 #include "disk/streamer.h"
 #include "fs/file.h"
 #include "fs/pparser.h"
+#include "gdt/gdt.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
 
@@ -17,6 +20,13 @@ uint16_t terminal_row = 0;
 uint16_t terminal_col = 0;
 
 static struct paging_4gb_chunk* kernel_chunk = 0;
+
+struct gdt gdt_real[LOGOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[LOGOS_TOTAL_GDT_SEGMENTS] = {
+    {.base = 0x00, .limit = 0x00, .type = 0x00},        // Null
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},  // Code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x92}   // Data segment
+};
 
 uint16_t terminal_make_char(char c, char colour) { return (colour << 8) | c; }
 
@@ -66,6 +76,10 @@ void kernel_main() {
   terminal_initialize();
   print("Hello world!\nTesting...\n");
 
+  memset(gdt_real, 0x00, sizeof(gdt_real));
+  gdt_structured_to_gdt(gdt_real, gdt_structured, LOGOS_TOTAL_GDT_SEGMENTS);
+  gdt_load(gdt_real, sizeof(gdt_real));
+
   // Init things :)
   kheap_init();
   fs_init();
@@ -100,6 +114,12 @@ void kernel_main() {
     fclose(fd);
     print("File closed!\n");
   }
+  while (1) {
+  }
+}
+
+void panic(const char* msg) {
+  print(msg);
   while (1) {
   }
 }

@@ -8,7 +8,7 @@ FLAGS = -g -ffreestanding -falign-jumps -falign-functions \
 	-nostdlib -nostartfiles -nodefaultlibs \
 	-Wall -O0 -Iinc
 
-all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf
+all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf user_programs
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
@@ -93,6 +93,12 @@ all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf
 ./build/task/task.asm.o: ./src/task/task.asm
 	nasm -f elf -g ./src/task/task.asm -o ./build/task/task.asm.o
 
+user_programs:
+	cd ./programs/blank && $(MAKE) all
+
+user_programs_clean:
+	cd ./programs/blank && $(MAKE) clean
+
 run-os:
 	qemu-system-i386 -hda ./bin/os.bin
 
@@ -105,7 +111,7 @@ debug:
 format:
 	find . -type f \( -name "*.c" -o -name "*.h" \) -exec clang-format -style=file -i {} +
 
-clean:
+clean: user_programs_clean
 	rm -rf ./bin/boot.bin
 	rm -rf ./bin/kernel.bin
 	rm -rf ./bin/os.bin

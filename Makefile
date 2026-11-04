@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/disk/streamer.o ./build/string/string.o ./build/fs/pparser.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/gdt/gdt.o ./build/gdt/gdt.asm.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/disk/disk.o ./build/disk/streamer.o ./build/string/string.o ./build/fs/pparser.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/gdt/gdt.o ./build/gdt/gdt.asm.o ./build/task/tss.asm.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions \
 	-falign-labels -falign-loops -fstrength-reduce \
@@ -80,6 +80,21 @@ all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf
 
 ./build/gdt/gdt.asm.o: ./src/gdt/gdt.asm
 	nasm -f elf -g ./src/gdt/gdt.asm -o ./build/gdt/gdt.asm.o
+
+./build/task/tss.asm.o: ./src/task/tss.asm
+	nasm -f elf -g ./src/task/tss.asm -o ./build/task/tss.asm.o
+
+run-os:
+	qemu-system-i386 -hda ./bin/os.bin
+
+run-os-debug:
+	qemu-system-i386 -s -S -hda ./bin/os.bin
+
+debug:
+	gdb -x debug.gdb
+
+format:
+	find . -type f \( -name "*.c" -o -name "*.h" \) -exec clang-format -style=file -i {} +
 
 clean:
 	rm -rf ./bin/boot.bin

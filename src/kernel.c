@@ -14,6 +14,7 @@
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
+#include "task/tss.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -21,11 +22,15 @@ uint16_t terminal_col = 0;
 
 static struct paging_4gb_chunk* kernel_chunk = 0;
 
+struct tss tss;
 struct gdt gdt_real[LOGOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[LOGOS_TOTAL_GDT_SEGMENTS] = {
-    {.base = 0x00, .limit = 0x00, .type = 0x00},        // Null
-    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},  // Code segment
-    {.base = 0x00, .limit = 0xffffffff, .type = 0x92}   // Data segment
+    {.base = 0x00, .limit = 0x00, .type = 0x00},        // Null segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},  // Kernel code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x92},  // Kernel data segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf8},  // User code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf2},  // User data segment
+    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9}  // TSS Segment
 };
 
 uint16_t terminal_make_char(char c, char colour) { return (colour << 8) | c; }
@@ -71,6 +76,12 @@ void print(const char* str) {
   }
 }
 
+void panic(const char* msg) {
+  print(msg);
+  while (1) {
+  }
+}
+
 void kernel_main() {
   // Terminal
   terminal_initialize();
@@ -85,6 +96,11 @@ void kernel_main() {
   fs_init();
   disk_search_and_init();
   idt_init();
+
+  memset(&tss, 0x00, sizeof(tss));
+  tss.esp0 = 0x600000;
+  tss.ss0 = KERNEL_DATA_SELECTOR;
+  tss_load(0x28);
 
   // Paging setup
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT |
@@ -114,12 +130,6 @@ void kernel_main() {
     fclose(fd);
     print("File closed!\n");
   }
-  while (1) {
-  }
-}
-
-void panic(const char* msg) {
-  print(msg);
   while (1) {
   }
 }

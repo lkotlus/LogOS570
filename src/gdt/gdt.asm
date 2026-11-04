@@ -1,5 +1,3 @@
-section .asm progbits alloc exec nowrite align=16
-
 section .text
 global gdt_load
 

@@ -33,7 +33,7 @@ struct task* task_new() {
     task_tail = task;
     goto out;
   }
-  
+
   task_tail->next = task;
   task->prev = task_tail;
   task_tail = task;

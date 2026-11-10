@@ -1,6 +1,7 @@
 section .asm progbits alloc exec nowrite align=16
 
 extern int21h_handler
+extern isr80h_handler
 extern no_interrupt_handler
 
 global int21h
@@ -8,6 +9,7 @@ global idt_load
 global no_interrupt
 global enable_interrupts
 global disable_interrupts
+global isr80h_wrapper
 
 idt_load:
     push ebp
@@ -41,3 +43,16 @@ enable_interrupts:
 disable_interrupts:
     cli
     ret
+
+isr80h_wrapper:
+    pushad
+    push esp
+    push eax
+    call isr0h_handler
+    mov dword[tmp_res], eax
+    add esp, 8
+    popad
+    mov eax, [tmp_res]
+    iretd
+    section .data
+    tmp_res: dd 0

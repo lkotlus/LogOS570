@@ -15,6 +15,9 @@
 #include "memory/paging/paging.h"
 #include "string/string.h"
 #include "task/tss.h"
+#include "task/task.h"
+#include "task/process.h"
+#include "status.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -109,27 +112,15 @@ void kernel_main() {
 
   // Enable things
   enable_paging();
-  enable_interrupts();
 
-  // File testing
-  int fd = fopen("0:/hello.txt", "r");
-  if (fd) {
-    print("We opened hello.txt\n");
-
-    struct file_stat s;
-    fstat(fd, &s);
-
-    char buf[37];
-    fseek(fd, 2, SEEK_SET);
-    fread(buf, 34, 1, fd);
-    buf[36] = 0x00;
-
-    print(buf);
-    print("\n");
-
-    fclose(fd);
-    print("File closed!\n");
+  struct process* process = 0;
+  int res = process_load("0:/blank.bin", &process);
+  if (res != LOGOS_ALL_OK) {
+    panic("Failed to load blank.bin\n");
   }
+
+  task_run_first_ever_task();
+
   while (1) {
   }
 }

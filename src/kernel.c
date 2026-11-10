@@ -13,11 +13,11 @@
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
-#include "string/string.h"
-#include "task/tss.h"
-#include "task/task.h"
-#include "task/process.h"
 #include "status.h"
+#include "string/string.h"
+#include "task/process.h"
+#include "task/task.h"
+#include "task/tss.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -108,7 +108,7 @@ void kernel_main() {
   // Paging setup
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT |
                                 PAGING_ACCESS_FROM_ALL);
-  paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+  paging_switch(kernel_chunk);
 
   // Enable things
   enable_paging();

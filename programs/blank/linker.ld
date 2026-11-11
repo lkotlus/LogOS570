@@ -1,6 +1,6 @@
 ENTRY(_start)
 OUTPUT_FORMAT(binary)
-SECTIONS 
+SECTIONS
 {
     . = 0x400000;
     .text : ALIGN(4096)
@@ -8,11 +8,16 @@ SECTIONS
         *(.text)
     }
 
+    .asm : ALIGN(4096)
+    {
+        *(.asm)
+    }
+
     .rodata : ALIGN(4096)
     {
         *(.rodata)
     }
-
+    
     .data : ALIGN(4096)
     {
         *(.data)
@@ -22,10 +27,5 @@ SECTIONS
     {
         *(COMMON)
         *(.bss)
-    }
-
-    .asm : ALIGN(4096)
-    {
-        *(.asm)
     }
 }

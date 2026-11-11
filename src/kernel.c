@@ -94,7 +94,6 @@ void kernel_page() {
 void kernel_main() {
   // Terminal
   terminal_initialize();
-  print("Hello world!\nTesting...\n");
 
   memset(gdt_real, 0x00, sizeof(gdt_real));
   gdt_structured_to_gdt(gdt_real, gdt_structured, LOGOS_TOTAL_GDT_SEGMENTS);

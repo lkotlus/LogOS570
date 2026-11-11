@@ -20,6 +20,7 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
+#include "keyboard/keyboard.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;

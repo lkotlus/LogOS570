@@ -11,6 +11,7 @@
 #include "gdt/gdt.h"
 #include "idt/idt.h"
 #include "isr80h/isr80h.h"
+#include "keyboard/keyboard.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
@@ -19,7 +20,6 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
-#include "keyboard/keyboard.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;

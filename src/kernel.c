@@ -97,6 +97,22 @@ void print(const char* str) {
   }
 }
 
+void print_int(int value) {
+  char buf[12];
+  int i = sizeof(buf) - 1;
+  unsigned int n = value < 0 ? -(unsigned int)value : (unsigned int)value;
+
+  buf[i] = 0;
+  do {
+    buf[--i] = '0' + (n % 10);
+    n /= 10;
+  } while (n);
+  if (value < 0) {
+    buf[--i] = '-';
+  }
+  print(&buf[i]);
+}
+
 void panic(const char* msg) {
   print(msg);
   while (1) {

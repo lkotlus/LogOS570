@@ -36,4 +36,10 @@
 // Round-robin time slice at 10ms
 #define LOGOS_TIMER_HZ 100
 
+// How many lockable resources we have
+#define LOGOS_MAX_RESOURCES 8
+
+// Print every lock/unlock/block (1 = on, 0 = off)
+#define LOGOS_TRACE_RESOURCES 1
+
 #endif

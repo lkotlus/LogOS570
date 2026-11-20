@@ -36,6 +36,7 @@ struct task {
   struct process* process;
   enum task_state state;
   uint32_t wake_tick;
+  int waiting_on;
   struct task* next;
   struct task* prev;
 };

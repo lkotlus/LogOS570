@@ -101,6 +101,7 @@ int task_init(struct task* task, struct process* process) {
   task->registers.esp = LOGOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
   task->process = process;
   task->state = TASK_READY;
+  task->waiting_on = -1;
 
   return 0;
 }

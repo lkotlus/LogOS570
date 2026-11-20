@@ -42,4 +42,11 @@
 // Print every lock/unlock/block (1 = on, 0 = off)
 #define LOGOS_TRACE_RESOURCES 1
 
+// Which test scenario kernel_main loads (programs/<name>/<name>.c)
+#define LOGOS_SCENARIO_CONTROL 0  // 3 tasks: never deadlocks
+#define LOGOS_SCENARIO_ABBA 1     // 2 tasks: always deadlocks in the first cycle
+#define LOGOS_SCENARIO_RACY 2     // 2 tasks: eventually deadlocks
+#define LOGOS_SCENARIO_PHILO 3    // 5 dining philosophers: 5-task cycle to deadlock
+#define LOGOS_SCENARIO LOGOS_SCENARIO_ABBA
+
 #endif

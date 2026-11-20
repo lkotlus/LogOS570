@@ -1,0 +1,8 @@
+-Istdlib
+-ffreestanding
+-fno-builtin
+-nostdlib
+-std=gnu99
+-Wall
+-target
+i686-elf

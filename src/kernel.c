@@ -124,6 +124,34 @@ void kernel_page() {
   paging_switch(kernel_chunk);
 }
 
+struct scenario {
+  const char* name;
+  const char* path;
+  int copies;
+};
+
+static struct scenario scenarios[] = {
+    {"control", "0:/control.bin", 3},
+    {"abba", "0:/abba.bin", 2},
+    {"racy", "0:/racy.bin", 2},
+    {"philo", "0:/philo.bin", 5},
+};
+
+static void load_scenario(int index) {
+  struct scenario* scenario = &scenarios[index];
+
+  print("Scenario: ");
+  print(scenario->name);
+  print("\n");
+
+  for (int i = 0; i < scenario->copies; i++) {
+    struct process* process = 0;
+    if (process_load(scenario->path, &process) != LOGOS_ALL_OK) {
+      panic("Failed to load scenario program\n");
+    }
+  }
+}
+
 void kernel_main() {
   // Terminal
   terminal_initialize();
@@ -155,13 +183,7 @@ void kernel_main() {
 
   keyboard_init();
 
-  for (int i = 0; i < 3; i++) {
-    struct process* process = 0;
-    int res = process_load("0:/blank.bin", &process);
-    if (res != LOGOS_ALL_OK) {
-      panic("Failed to load blank.bin\n");
-    }
-  }
+  load_scenario(LOGOS_SCENARIO);
 
   timer_init(LOGOS_TIMER_HZ);
 

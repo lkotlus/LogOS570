@@ -15,7 +15,7 @@ all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf user_programs
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
 	sudo mount -t vfat ./bin/os.bin /mnt/d
 	sudo cp ./hello.txt /mnt/d
-	sudo cp ./programs/blank/blank.bin /mnt/d
+	sudo cp ./programs/*/*.bin /mnt/d
 	sudo umount /mnt/d
 
 ./bin/kernel.bin: $(FILES)
@@ -113,10 +113,10 @@ all: ./bin/boot.bin ./bin/kernel.bin ./build/kernel.elf user_programs
 	i686-elf-gcc $(INCLUDES) -I./src/task $(FLAGS) -std=gnu99 -c ./src/task/resource.c -o ./build/task/resource.o
 
 user_programs:
-	cd ./programs/blank && $(MAKE) all
+	cd ./programs && $(MAKE) all
 
 user_programs_clean:
-	cd ./programs/blank && $(MAKE) clean
+	cd ./programs && $(MAKE) clean
 
 run-os:
 	qemu-system-i386 -hda ./bin/os.bin

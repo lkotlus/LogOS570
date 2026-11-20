@@ -4,6 +4,7 @@ section .asm progbits alloc exec nowrite align=16
 global user_registers
 global restore_general_purpose_registers
 global task_return
+global task_idle_wait
 
 user_registers:
     mov ax, 0x23
@@ -32,8 +33,7 @@ task_return:
     mov ebx, [ebp+4]
     push dword [ebx+44]
     push dword [ebx+40]
-    pushf
-    pop eax
+    mov eax, [ebx+36]
     or eax, 0x200
     push eax
     push dword [ebx+32]
@@ -43,7 +43,13 @@ task_return:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    push dword [ebx+4]
+    push dword [ebp+4]
     call restore_general_purpose_registers
     add esp, 4
     iretd
+
+task_idle_wait:
+    sti
+    hlt
+    cli
+    ret

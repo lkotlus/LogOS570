@@ -33,4 +33,7 @@
 
 #define LOGOS_KEYBOARD_BUFFER_SIZE 1024
 
+// Round-robin time slice at 10ms
+#define LOGOS_TIMER_HZ 100
+
 #endif

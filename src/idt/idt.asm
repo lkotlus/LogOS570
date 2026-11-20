@@ -1,9 +1,11 @@
 section .asm progbits alloc exec nowrite align=16
 
+extern int20h_handler
 extern int21h_handler
 extern isr80h_handler
 extern no_interrupt_handler
 
+global int20h
 global int21h
 global idt_load
 global no_interrupt
@@ -19,6 +21,14 @@ idt_load:
     lidt [ebx]
     pop ebp
     ret
+
+int20h:
+    pushad
+    push esp
+    call int20h_handler
+    add esp, 4
+    popad
+    iretd
 
 int21h:
     cli

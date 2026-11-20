@@ -44,20 +44,36 @@ void terminal_putchar(int x, int y, char c, char colour) {
   video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(c, colour);
 }
 
+// Move all rows up by one (thus removing the top),
+// blank the bottom row.
+static void terminal_scroll() {
+  for (int y = 1; y < VGA_HEIGHT; y++) {
+    for (int x = 0; x < VGA_WIDTH; x++) {
+      video_mem[((y - 1) * VGA_WIDTH) + x] = video_mem[(y * VGA_WIDTH) + x];
+    }
+  }
+  for (int x = 0; x < VGA_WIDTH; x++) {
+    terminal_putchar(x, VGA_HEIGHT - 1, ' ', 0);
+  }
+  terminal_row = VGA_HEIGHT - 1;
+}
+
 void terminal_writechar(char c, char colour) {
   if (c == '\n') {
     terminal_row += 1;
     terminal_col = 0;
+  } else {
+    terminal_putchar(terminal_col, terminal_row, c, colour);
+    terminal_col += 1;
 
-    return;
+    if (terminal_col >= VGA_WIDTH) {
+      terminal_col = 0;
+      terminal_row += 1;
+    }
   }
 
-  terminal_putchar(terminal_col, terminal_row, c, colour);
-  terminal_col += 1;
-
-  if (terminal_col >= VGA_WIDTH) {
-    terminal_col = 0;
-    terminal_row += 1;
+  if (terminal_row >= VGA_HEIGHT) {
+    terminal_scroll();
   }
 }
 
@@ -123,11 +139,15 @@ void kernel_main() {
 
   keyboard_init();
 
-  struct process* process = 0;
-  int res = process_load("0:/blank.bin", &process);
-  if (res != LOGOS_ALL_OK) {
-    panic("Failed to load blank.bin\n");
+  for (int i = 0; i < 3; i++) {
+    struct process* process = 0;
+    int res = process_load("0:/blank.bin", &process);
+    if (res != LOGOS_ALL_OK) {
+      panic("Failed to load blank.bin\n");
+    }
   }
+
+  timer_init(LOGOS_TIMER_HZ);
 
   task_run_first_ever_task();
 

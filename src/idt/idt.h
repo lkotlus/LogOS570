@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#define PIT_BASE_FREQUENCY 1193182
+#define PIT_CHANNEL0_PORT 0x40
+#define PIT_COMMAND_PORT 0x43
+#define PIT_COMMAND_CH0_LOHI_MODE3 0x36
+
 struct idt_desc {
   uint16_t offset_1;
   uint16_t selector;
@@ -39,5 +44,6 @@ void idt_init();
 void enable_interrupts();
 void disable_interrupts();
 void isr80h_register_command(int command_id, ISR80H_COMMAND command);
+void timer_init(uint32_t hz);
 
 #endif

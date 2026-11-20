@@ -1,6 +1,7 @@
 #ifndef TASK_H
 #define TASK_H
 
+#include <stdint.h>
 #include "config.h"
 #include "memory/paging/paging.h"
 
@@ -22,10 +23,19 @@ struct registers {
 struct process;
 struct interrupt_frame;
 
+enum task_state {
+  TASK_READY = 0, // Waiting its turn for the CPU (can run)
+  TASK_RUNNING,   // Currently on the CPU
+  TASK_SLEEPING,  // Waiting for the for the counter to reach wake_tick
+  TASK_BLOCKED    // Waiting on a resource
+};
+
 struct task {
   struct paging_4gb_chunk* page_directory;
   struct registers registers;
   struct process* process;
+  enum task_state state;
+  uint32_t wake_tick;
   struct task* next;
   struct task* prev;
 };
@@ -45,5 +55,12 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys,
                           int max);
 void* task_get_stack_item(struct task* task, int index);
 int task_page_task(struct task* task);
+
+// Scheduler
+void task_next();
+void task_tick();
+uint32_t task_get_ticks();
+void task_sleep_current(uint32_t ticks);
+void task_idle_wait();
 
 #endif

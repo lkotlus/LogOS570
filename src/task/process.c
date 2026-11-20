@@ -10,14 +10,16 @@
 #include "string/string.h"
 #include "task/task.h"
 
-struct process* current_process = 0;
 static struct process* processes[LOGOS_MAX_PROCESSES] = {};
 
 static void process_init(struct process* process) {
   memset(process, 0, sizeof(struct process));
 }
 
-struct process* process_current() { return current_process; }
+struct process* process_current() {
+  struct task* task = task_current();
+  return task ? task->process : 0;
+}
 
 struct process* process_get(int process_id) {
   if (process_id < 0 || process_id >= LOGOS_MAX_PROCESSES) {

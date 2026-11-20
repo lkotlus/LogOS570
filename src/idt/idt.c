@@ -12,6 +12,7 @@ struct idtr_desc idtr_descriptor;
 static ISR80H_COMMAND isr80h_commands[LOGOS_MAX_ISR80H_COMMANDS];
 
 extern void idt_load(struct idtr_desc* ptr);
+extern void int20h();
 extern void int21h();
 extern void no_interrupt();
 extern void isr80h_wrapper();
@@ -29,7 +30,7 @@ void idt_set(int interrupt_no, void* address) {
 }
 
 void int21h_handler() {
-  print("Keyboard pressed!\n");
+  // print("Keyboard pressed!\n");
   outb(0x20, 0x20);
 }
 
@@ -45,6 +46,7 @@ void idt_init() {
   }
 
   idt_set(0, idt_zero);
+  idt_set(0x20, int20h);
   idt_set(0x21, int21h);
   idt_set(0x80, isr80h_wrapper);
 
@@ -81,4 +83,26 @@ void isr80h_register_command(int command_id, ISR80H_COMMAND command) {
     panic("Your attempting to overwrite an existing command\n");
   }
   isr80h_commands[command_id] = command;
+}
+
+// Timer interrupt (drives the RR scheduler)
+void int20h_handler(struct interrupt_frame* frame) {
+  kernel_page();
+
+  outb(0x20, 0x20);
+  task_tick();
+
+  if ((frame->cs & 0x3) != 0x3) {
+    return;
+  }
+
+  task_current_save_state(frame);
+  task_next();
+}
+
+void timer_init(uint32_t hz) {
+  uint32_t divisor = PIT_BASE_FREQUENCY / hz;
+  outb(PIT_COMMAND_PORT, PIT_COMMAND_CH0_LOHI_MODE3);
+  outb(PIT_CHANNEL0_PORT, divisor & 0xFF);
+  outb(PIT_CHANNEL0_PORT, (divisor >> 8) & 0xFF);
 }

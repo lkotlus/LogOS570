@@ -59,8 +59,15 @@ struct task* task_get_next() {
 }
 
 static void task_list_remove(struct task* task) {
+  if (task == current_task) {
+    struct task* next = task_get_next();
+    current_task = (next == task) ? 0 : next;
+  }
   if (task->prev) {
     task->prev->next = task->next;
+  }
+  if (task->next) {
+    task->next->prev = task->prev;
   }
   if (task == task_head) {
     task_head = task->next;
@@ -68,9 +75,8 @@ static void task_list_remove(struct task* task) {
   if (task == task_tail) {
     task_tail = task->prev;
   }
-  if (task == current_task) {
-    current_task = task_get_next();
-  }
+  task->next = 0;
+  task->prev = 0;
 }
 
 int task_free(struct task* task) {
@@ -94,6 +100,7 @@ int task_init(struct task* task, struct process* process) {
   task->registers.cs = USER_CODE_SEGMENT;
   task->registers.esp = LOGOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
   task->process = process;
+  task->state = TASK_READY;
 
   return 0;
 }
@@ -109,6 +116,7 @@ void task_run_first_ever_task() {
     panic("task_run_first_ever_task(): No current task exists!\\n");
   }
   task_switch(task_head);
+  task_head->state = TASK_RUNNING;
   task_return(&task_head->registers);
 }
 
@@ -192,4 +200,82 @@ void* task_get_stack_item(struct task* task, int index) {
   kernel_page();
 
   return result;
+}
+
+//
+// Round-robin scheduler code:
+//
+
+// Timer ticks since the PIT was started. Only written by the timer interrupt.
+static volatile uint32_t task_ticks = 0;
+
+uint32_t task_get_ticks() { return task_ticks; }
+
+static int task_is_runnable(struct task* task) {
+  return task->state == TASK_READY || task->state == TASK_RUNNING;
+}
+
+// Walks the list one time to find the next runnable task
+static struct task* task_find_next_runnable() {
+  if (!task_head) {
+    return 0;
+  }
+
+  struct task* start = current_task ? current_task : task_head;
+  struct task* task = start;
+  do {
+    task = task->next ? task->next : task_head;
+    if (task_is_runnable(task)) {
+      return task;
+    }
+  } while (task != start);
+
+  return 0;
+}
+
+// Called on every timer tick, in both user and idle context. Wakes sleepers.
+void task_tick() {
+  task_ticks++;
+
+  for (struct task* task = task_head; task; task = task->next) {
+    // Signed difference so this still works when task_ticks wraps around.
+    if (task->state == TASK_SLEEPING &&
+        (int32_t)(task_ticks - task->wake_tick) >= 0) {
+      task->state = TASK_READY;
+    }
+  }
+}
+
+// Switch to the next runnable task without returning
+void task_next() {
+  struct task* next = task_find_next_runnable();
+
+  while (!next) {
+    task_idle_wait();  // sti; hlt; cli: sleep until the next interrupt
+    next = task_find_next_runnable();
+  }
+
+  if (current_task && current_task->state == TASK_RUNNING) {
+    current_task->state = TASK_READY;
+  }
+  next->state = TASK_RUNNING;
+
+  task_switch(next);
+  task_return(&next->registers);
+}
+
+// Puts the current task to sleep for a set number of ticks and runs soemthing else.
+void task_sleep_current(uint32_t ticks) {
+  struct task* task = task_current();
+
+  task->registers.eax = 0;
+
+  if (ticks == 0) {
+    task->state = TASK_READY;
+  } else {
+    task->state = TASK_SLEEPING;
+    task->wake_tick = task_ticks + ticks;
+  }
+
+  task_next();
 }

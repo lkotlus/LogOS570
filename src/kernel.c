@@ -20,6 +20,7 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
+#include "task/resource.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -128,14 +129,17 @@ struct scenario {
   const char* name;
   const char* path;
   int copies;
+  int capacities[LOGOS_MAX_RESOURCES];  // 0 = default of 1 (a mutex)
 };
 
 static struct scenario scenarios[] = {
-    {"control", "0:/control.bin", 3},
-    {"abba", "0:/abba.bin", 2},
-    {"racy", "0:/racy.bin", 2},
-    {"philo", "0:/philo.bin", 5},
-    {"exitlock", "0:/exitlock.bin", 3}
+    {"control", "0:/control.bin", 3, {}},
+    {"abba", "0:/abba.bin", 2, {}},
+    {"racy", "0:/racy.bin", 2, {}},
+    {"philo", "0:/philo.bin", 5, {}},
+    {"exitlock", "0:/exitlock.bin", 3, {}},
+    {"pool", "0:/pool.bin", 3, {[0] = 3}},
+    {"safecycle", "0:/safecycle.bin", 3, {[0] = 2}},
 };
 
 static void load_scenario(int index) {
@@ -144,6 +148,11 @@ static void load_scenario(int index) {
   print("Scenario: ");
   print(scenario->name);
   print("\n");
+
+  for (int id = 0; id < LOGOS_MAX_RESOURCES; id++) {
+    int capacity = scenario->capacities[id];
+    resource_set_capacity(id, capacity > 0 ? capacity : 1);
+  }
 
   for (int i = 0; i < scenario->copies; i++) {
     struct process* process = 0;

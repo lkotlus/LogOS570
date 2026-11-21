@@ -16,91 +16,123 @@ struct resource* resource_get(int id) {
   return resource_id_valid(id) ? &resources[id] : 0;
 }
 
-static void resource_trace(struct task* task, const char* what, int id) {
+// Must be called before any task uses the resource. Resets it to all free.
+void resource_set_capacity(int id, int capacity) {
+  struct resource* res = resource_get(id);
+  if (!res) {
+    return;
+  }
+  res->capacity = capacity;
+  res->available = capacity;
+  res->waiter_count = 0;
+}
+
+// Prints e.g. "[T1 got n R0, (N-n)/N free]"
+static void resource_trace(struct task* task, const char* what, int id,
+                           int count) {
 #if LOGOS_TRACE_RESOURCES
-  print("  [T");
+  struct resource* res = &resources[id];
+  print("    [T");
   print_int(task->process->id);
   print(" ");
   print(what);
-  print(" R");
+  print(" ");
+  print_int(count);
+  print("x R");
   print_int(id);
-  print("]\n");
+  print(", ");
+  print_int(res->available);
+  print("/");
+  print_int(res->capacity);
+  print(" free]\n");
 #endif
 }
 
-// Take resource or block until handed over
-int resource_lock(int id) {
+static void resource_grant(struct resource* res, int id, struct task* task,
+                           int count) {
+  res->available -= count;
+  task->held[id] += count;
+  resource_trace(task, "got", id, count);
+}
+
+static void resource_dequeue(struct resource* res, int index) {
+  for (int i = index + 1; i < res->waiter_count; i++) {
+    res->waiters[i - 1] = res->waiters[i];
+  }
+  res->waiter_count--;
+}
+
+static void resource_grant_waiters(struct resource* res, int id) {
+  while (res->waiter_count > 0 &&
+         res->waiters[0]->waiting_count <= res->available) {
+    struct task* next = res->waiters[0];
+    resource_dequeue(res, 0);
+
+    resource_grant(res, id, next, next->waiting_count);
+    next->waiting_on = -1;
+    next->waiting_count = 0;
+    next->state = TASK_READY;
+    next->registers.eax = 0;  // Return value of its acquire() call
+  }
+}
+
+int resource_acquire(int id, int count) {
   struct task* task = task_current();
   struct resource* res = resource_get(id);
 
-  if (!res) {
+  if (!res || count < 1 || count > res->capacity) {
     return -EINVARG;
   }
-  if (res->owner == task) {
-    return -EISTKN;  // Not recursive
+  if (task->held[id] + count > res->capacity) {
+    return -EISTKN;  // Could never be satisfied (e.g. relocking a mutex)
   }
 
-  if (!res->owner) {
-    res->owner = task;
-    resource_trace(task, "got", id);
+  if (res->waiter_count == 0 && count <= res->available) {
+    resource_grant(res, id, task, count);
     return 0;
   }
 
-  // Held by someone else, so queue up and give the CPU away.
   res->waiters[res->waiter_count++] = task;
   task->state = TASK_BLOCKED;
   task->waiting_on = id;
-  resource_trace(task, "waits for", id);
+  task->waiting_count = count;
+  resource_trace(task, "waits for", id, count);
 
   task_next();  // Does not return
   return 0;
 }
 
-static void resource_release(struct resource* res, int id) {
-  resource_trace(res->owner, "released", id);
-
-  if (res->waiter_count == 0) {
-    res->owner = 0;
-    return;
-  }
-
-  struct task* next = res->waiters[0];
-  for (int i = 1; i < res->waiter_count; i++) {
-    res->waiters[i - 1] = res->waiters[i];
-  }
-  res->waiter_count--;
-
-  res->owner = next;
-  next->waiting_on = -1;
-  next->state = TASK_READY;
-  next->registers.eax = 0;  // Return value of its lock() call
-  resource_trace(next, "got", id);
+static void resource_return_units(struct task* task, int id, int count) {
+  struct resource* res = &resources[id];
+  task->held[id] -= count;
+  res->available += count;
+  resource_trace(task, "released", id, count);
+  resource_grant_waiters(res, id);
 }
 
-int resource_unlock(int id) {
+int resource_release(int id, int count) {
+  struct task* task = task_current();
   struct resource* res = resource_get(id);
 
-  if (!res) {
+  if (!res || count < 1) {
     return -EINVARG;
   }
-  if (res->owner != task_current()) {
+  if (task->held[id] < count) {
     return -ENOTOWNER;
   }
 
-  resource_release(res, id);
+  resource_return_units(task, id, count);
   return 0;
 }
 
-// Releases everything held by the task (for exit or kill).
 void resource_release_all(struct task* task) {
   for (int id = 0; id < LOGOS_MAX_RESOURCES; id++) {
-    if (resources[id].owner == task) {
-      resource_release(&resources[id], id);
+    if (task->held[id] > 0) {
+      resource_return_units(task, id, task->held[id]);
     }
   }
 }
 
-// Takes a task out of all wait queues it's blocked in
 void resource_cancel_wait(struct task* task) {
   struct resource* res = resource_get(task->waiting_on);
   if (!res) {
@@ -109,12 +141,13 @@ void resource_cancel_wait(struct task* task) {
 
   for (int i = 0; i < res->waiter_count; i++) {
     if (res->waiters[i] == task) {
-      for (int j = i + 1; j < res->waiter_count; j++) {
-        res->waiters[j - 1] = res->waiters[j];
-      }
-      res->waiter_count--;
+      resource_dequeue(res, i);
       break;
     }
   }
+
+  int id = task->waiting_on;
   task->waiting_on = -1;
+  task->waiting_count = 0;
+  resource_grant_waiters(res, id);
 }

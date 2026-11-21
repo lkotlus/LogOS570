@@ -23,16 +23,18 @@ void* isr80h_command3_getpid(struct interrupt_frame* frame) {
   return (void*)(uint32_t)task_current()->process->id;
 }
 
-// lock(id): blocks until the resource is ours. Returns 0 or a negative error.
-void* isr80h_command4_lock(struct interrupt_frame* frame) {
+// acquire(id, count): blocks until specified number of units are ours. 0 or -error.
+void* isr80h_command4_acquire(struct interrupt_frame* frame) {
   int id = (int)task_get_stack_item(task_current(), 0);
-  return (void*)resource_lock(id);
+  int count = (int)task_get_stack_item(task_current(), 1);
+  return (void*)resource_acquire(id, count);
 }
 
-// unlock(id): returns 0 or a negative error.
-void* isr80h_command5_unlock(struct interrupt_frame* frame) {
+// release(id, count): gives back specified number of units. 0 or -error.
+void* isr80h_command5_release(struct interrupt_frame* frame) {
   int id = (int)task_get_stack_item(task_current(), 0);
-  return (void*)resource_unlock(id);
+  int count = (int)task_get_stack_item(task_current(), 1);
+  return (void*)resource_release(id, count);
 }
 
 // exit(ret_val): exits and returns given exit code

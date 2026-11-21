@@ -8,8 +8,12 @@
 void print(const char* str);
 int sleep(unsigned int ticks);  // 100 ticks = 1 second, sleep(0) yields
 int getpid();
-int lock(int id);    // Blocks until the resource is ours. 0 or -error.
-int unlock(int id);  // 0 or -error
+int acquire(int id, int count);  // Blocks until all required units are ours
+int release(int id, int count);  // 0 or -error
+
+// Mutex shorthand
+static inline int lock(int id) { return acquire(id, 1); }
+static inline int unlock(int id) { return release(id, 1); }
 
 // Library (stdlib/logos.c)
 void printf(const char* fmt, ...);  // %d %u %x %s %c %%

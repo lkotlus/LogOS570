@@ -36,7 +36,9 @@ struct task {
   struct process* process;
   enum task_state state;
   uint32_t wake_tick;
+  int held[LOGOS_MAX_RESOURCES];
   int waiting_on;
+  int waiting_count;
   struct task* next;
   struct task* prev;
 };

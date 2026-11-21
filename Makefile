@@ -121,6 +121,9 @@ user_programs_clean:
 run-os:
 	qemu-system-i386 -hda ./bin/os.bin
 
+run-ossh:
+	qemu-system-i386 -hda ./bin/os.bin -monitor stdio
+
 run-os-debug:
 	qemu-system-i386 -s -S -hda ./bin/os.bin
 

@@ -47,6 +47,7 @@
 #define LOGOS_SCENARIO_ABBA 1     // 2 tasks: always deadlocks in the first cycle
 #define LOGOS_SCENARIO_RACY 2     // 2 tasks: eventually deadlocks
 #define LOGOS_SCENARIO_PHILO 3    // 5 dining philosophers: 5-task cycle to deadlock
-#define LOGOS_SCENARIO LOGOS_SCENARIO_ABBA
+#define LOGOS_SCENARIO_EXITLOCK 4 // 3 tasks: exit while holding locks to release them
+#define LOGOS_SCENARIO LOGOS_SCENARIO_CONTROL
 
 #endif

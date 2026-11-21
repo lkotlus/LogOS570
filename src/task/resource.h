@@ -15,5 +15,7 @@ struct resource {
 int resource_lock(int id);
 int resource_unlock(int id);
 struct resource* resource_get(int id);
+void resource_release_all(struct task* task);
+void resource_cancel_wait(struct task* task);
 
 #endif

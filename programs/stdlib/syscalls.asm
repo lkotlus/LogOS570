@@ -28,3 +28,4 @@ SYSCALL1 sleep,  2
 SYSCALL0 getpid, 3
 SYSCALL1 lock,   4
 SYSCALL1 unlock, 5
+SYSCALL1 exit,   6

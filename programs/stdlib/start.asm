@@ -9,10 +9,6 @@ extern main
 _start:
     call main
 
-    ; No exit syscall yet (sleep forever)
-.done:
-    push dword 1000
-    mov eax, 2 ; sleep
+    push eax
+    mov eax, 6
     int 0x80
-    add esp, 4
-    jmp .done

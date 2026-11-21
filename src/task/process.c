@@ -9,6 +9,7 @@
 #include "status.h"
 #include "string/string.h"
 #include "task/task.h"
+#include "task/resource.h"
 
 static struct process* processes[LOGOS_MAX_PROCESSES] = {};
 
@@ -19,6 +20,27 @@ static void process_init(struct process* process) {
 struct process* process_current() {
   struct task* task = task_current();
   return task ? task->process : 0;
+}
+
+// Free a process and its task, works as either exit (from running process) or
+// kill (from another process/the kernel)
+void process_terminate(struct process* process, int status) {
+  struct task* task = process->task;
+
+  print("  [T");
+  print_int(process->id);
+  print(" exited with status ");
+  print_int(status);
+  print("]\n");
+
+  resource_cancel_wait(task);
+  resource_release_all(task);
+
+  processes[process->id] = 0;
+  task_free(task);
+  kfree(process->ptr);
+  kfree(process->stack);
+  kfree(process);
 }
 
 struct process* process_get(int process_id) {
@@ -126,7 +148,7 @@ int process_load_for_slot(const char* filename, struct process** process,
   _process->id = process_slot;
   task = task_new(_process);
 
-  if (ERROR_I(task) == 0) {
+  if (ISERR(task) == 0) {
     res = ERROR_I(task);
     goto out;
   }

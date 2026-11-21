@@ -16,5 +16,6 @@ void printf(const char* fmt, ...);  // %d %u %x %s %c %%
 void spin(unsigned int iterations);  // Busy-wait without giving up the CPU
 void* memset(void* ptr, int c, size_t size);
 void* memcpy(void* dest, const void* src, size_t len);
+void exit(int status) __attribute__((noreturn)); // Releases all locks
 
 #endif

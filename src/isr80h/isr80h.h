@@ -8,6 +8,7 @@ enum SystemCommands {
   SYSTEM_COMMAND3_GETPID,
   SYSTEM_COMMAND4_LOCK,
   SYSTEM_COMMAND5_UNLOCK,
+  SYSTEM_COMMAND6_EXIT
 };
 
 void isr80h_register_commands();

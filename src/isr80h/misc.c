@@ -34,3 +34,11 @@ void* isr80h_command5_unlock(struct interrupt_frame* frame) {
   int id = (int)task_get_stack_item(task_current(), 0);
   return (void*)resource_unlock(id);
 }
+
+// exit(ret_val): exits and returns given exit code
+void* isr80h_command6_exit(struct interrupt_frame* frame) {
+  int status = (int)task_get_stack_item(task_current(), 0);
+  process_terminate(process_current(), status);
+  task_next();
+  return 0;
+}

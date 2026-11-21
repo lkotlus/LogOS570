@@ -56,23 +56,12 @@ int resource_lock(int id) {
   return 0;
 }
 
-// Releases the resource. Pass ownership to oldest waiter.
-int resource_unlock(int id) {
-  struct task* task = task_current();
-  struct resource* res = resource_get(id);
-
-  if (!res) {
-    return -EINVARG;
-  }
-  if (res->owner != task) {
-    return -ENOTOWNER;
-  }
-
-  resource_trace(task, "released", id);
+static void resource_release(struct resource* res, int id) {
+  resource_trace(res->owner, "released", id);
 
   if (res->waiter_count == 0) {
     res->owner = 0;
-    return 0;
+    return;
   }
 
   struct task* next = res->waiters[0];
@@ -86,6 +75,46 @@ int resource_unlock(int id) {
   next->state = TASK_READY;
   next->registers.eax = 0;  // Return value of its lock() call
   resource_trace(next, "got", id);
+}
 
+int resource_unlock(int id) {
+  struct resource* res = resource_get(id);
+
+  if (!res) {
+    return -EINVARG;
+  }
+  if (res->owner != task_current()) {
+    return -ENOTOWNER;
+  }
+
+  resource_release(res, id);
   return 0;
+}
+
+// Releases everything held by the task (for exit or kill).
+void resource_release_all(struct task* task) {
+  for (int id = 0; id < LOGOS_MAX_RESOURCES; id++) {
+    if (resources[id].owner == task) {
+      resource_release(&resources[id], id);
+    }
+  }
+}
+
+// Takes a task out of all wait queues it's blocked in
+void resource_cancel_wait(struct task* task) {
+  struct resource* res = resource_get(task->waiting_on);
+  if (!res) {
+    return;
+  }
+
+  for (int i = 0; i < res->waiter_count; i++) {
+    if (res->waiters[i] == task) {
+      for (int j = i + 1; j < res->waiter_count; j++) {
+        res->waiters[j - 1] = res->waiters[j];
+      }
+      res->waiter_count--;
+      break;
+    }
+  }
+  task->waiting_on = -1;
 }

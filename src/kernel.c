@@ -135,6 +135,7 @@ static struct scenario scenarios[] = {
     {"abba", "0:/abba.bin", 2},
     {"racy", "0:/racy.bin", 2},
     {"philo", "0:/philo.bin", 5},
+    {"exitlock", "0:/exitlock.bin", 3}
 };
 
 static void load_scenario(int index) {

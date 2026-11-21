@@ -2,7 +2,7 @@ CC = i686-elf-gcc
 CFLAGS = -g -ffreestanding -fno-builtin -nostdlib -O0 -Wall -Werror \
 	-std=gnu99 -I./stdlib
 
-PROGRAMS = control abba racy philo
+PROGRAMS = control abba racy philo exitlock
 BINS = $(foreach p,$(PROGRAMS),$(p)/$(p).bin)
 LIB = build/start.asm.o build/syscalls.asm.o build/logos.o
 

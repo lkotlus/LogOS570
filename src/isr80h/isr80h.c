@@ -11,4 +11,5 @@ void isr80h_register_commands() {
   isr80h_register_command(SYSTEM_COMMAND3_GETPID, isr80h_command3_getpid);
   isr80h_register_command(SYSTEM_COMMAND4_LOCK, isr80h_command4_lock);
   isr80h_register_command(SYSTEM_COMMAND5_UNLOCK, isr80h_command5_unlock);
+  isr80h_register_command(SYSTEM_COMMAND6_EXIT, isr80h_command6_exit);
 }

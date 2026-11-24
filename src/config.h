@@ -51,6 +51,6 @@
 #define LOGOS_SCENARIO_POOL 5         // 3 tasks: deadlocks with no second resource (3-unit pool)
 #define LOGOS_SCENARIO_SAFECYCLE 6    // 3 tasks: wait-for cycle that isn't deadlock due to multiple resources
 
-#define LOGOS_SCENARIO LOGOS_SCENARIO_ABBA
+#define LOGOS_SCENARIO LOGOS_SCENARIO_PHILO
 
 #endif

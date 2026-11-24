@@ -119,13 +119,13 @@ user_programs_clean:
 	cd ./programs && $(MAKE) clean
 
 run-os:
-	qemu-system-i386 -hda ./bin/os.bin
+	qemu-system-i386 -hda ./bin/os.bin -display gtk,zoom-to-fit=on
 
 run-ossh:
-	qemu-system-i386 -hda ./bin/os.bin -monitor stdio
+	qemu-system-i386 -hda ./bin/os.bin -monitor stdio -display gtk,zoom-to-fit=on
 
 run-os-debug:
-	qemu-system-i386 -s -S -hda ./bin/os.bin
+	qemu-system-i386 -s -S -hda ./bin/os.bin -display gtk,zoom-to-fit=on
 
 debug:
 	gdb -x debug.gdb

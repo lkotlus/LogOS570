@@ -139,7 +139,7 @@ static struct scenario scenarios[] = {
     {"philo", "0:/philo.bin", 5, {}},
     {"exitlock", "0:/exitlock.bin", 3, {}},
     {"pool", "0:/pool.bin", 3, {[0] = 3}},
-    {"safecycle", "0:/safecycle.bin", 3, {[0] = 2}},
+    {"safecycle", "0:/safecy.bin", 3, {[0] = 2}},
 };
 
 static void load_scenario(int index) {
@@ -180,6 +180,8 @@ void kernel_main() {
   tss.esp0 = 0x600000;
   tss.ss0 = KERNEL_DATA_SELECTOR;
   tss_load(0x28);
+
+  print("In the beginning was the Word...\n\n");
 
   // Paging setup
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT |

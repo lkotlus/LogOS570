@@ -1,6 +1,6 @@
 #include "logos.h"
 
-// Pool deadlock: R0 is a pool of 3 units.
+// Pool deadlock: R0 is a pool of 3 units. Three 
 int main() {
   int pid = getpid();
 

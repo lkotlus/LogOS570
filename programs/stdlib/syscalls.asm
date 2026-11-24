@@ -40,6 +40,6 @@ $%1:
 SYSCALL1 print,     1
 SYSCALL1 sleep,     2
 SYSCALL0 getpid,    3
-SYSCALL1 acquire,   4
-SYSCALL1 release,   5
+SYSCALL2 acquire,   4
+SYSCALL2 release,   5
 SYSCALL1 exit,      6

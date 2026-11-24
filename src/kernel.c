@@ -181,7 +181,7 @@ void kernel_main() {
   tss.ss0 = KERNEL_DATA_SELECTOR;
   tss_load(0x28);
 
-  print("In the beginning was the Word...\n\n");
+  print("\"In the beginning was the Word\"\n\n");
 
   // Paging setup
   kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT |
